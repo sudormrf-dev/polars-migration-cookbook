@@ -39,7 +39,6 @@ from patterns.pandas_compat import (
     SchemaMapper,
 )
 from patterns.performance import (
-    ParallelConfig,
     PerformanceAdvisor,
     Timer,
     profile_memory,
@@ -266,9 +265,7 @@ def demo_window(rows: list[dict[str, Any]]) -> None:
     # Rolling sum (window=3) for the customer with most orders
     busiest_cid = max(customer_amounts, key=lambda k: len(customer_amounts[k]))
     cust1 = customer_amounts[busiest_cid]
-    rolling = [
-        round(sum(cust1[max(0, i - 2) : i + 1]), 2) for i in range(min(5, len(cust1)))
-    ]
+    rolling = [round(sum(cust1[max(0, i - 2) : i + 1]), 2) for i in range(min(5, len(cust1)))]
 
     spec = WindowSpec(partition_by=["customer_id"], order_by="order_id", window_size=3)
     expr = build_window_expr("amount", WindowFunction.ROLLING_SUM, spec)
@@ -292,15 +289,15 @@ def demo_null_handling(rows: list[dict[str, Any]]) -> None:
 
     # Simulate nulls by replacing some amounts with None
     rng = random.Random(_RANDOM_SEED + 1)
-    nullified = [
-        {**r, "amount": None if rng.random() < 0.1 else r["amount"]} for r in rows[:20]
-    ]
+    nullified = [{**r, "amount": None if rng.random() < 0.1 else r["amount"]} for r in rows[:20]]
     null_count = sum(1 for r in nullified if r["amount"] is None)
     filled = [{**r, "amount": 0.0 if r["amount"] is None else r["amount"]} for r in nullified]
     after_fill = sum(1 for r in filled if r["amount"] is None)
 
     expr_fill = ExpressionBuilder("amount").fill_null(0.0).build()
-    expr_cast = ExpressionBuilder("amount").cast("Float64").fill_null(0.0).alias("amount_clean").build()
+    expr_cast = (
+        ExpressionBuilder("amount").cast("Float64").fill_null(0.0).alias("amount_clean").build()
+    )
 
     _show(
         "FillNull",
@@ -388,6 +385,7 @@ def demo_lazy_pipeline() -> None:
 
     # Show optimizer suggestions
     from patterns.lazy_evaluation import PipelineOptimizer
+
     optimizer = PipelineOptimizer(plan, config)
     hints = optimizer.suggestions()
     print(f"\n  Optimizer hints ({len(hints)}):")
@@ -438,8 +436,9 @@ def demo_performance_advisor() -> None:
         rows.sort(key=lambda r: r["amount"])
     result = t.result
     assert result is not None
-    print(f"\n  Timer demo — sort 200 rows: {result.ms:.3f} ms "
-          f"({result.rows_per_second:,.0f} rows/s)")
+    print(
+        f"\n  Timer demo — sort 200 rows: {result.ms:.3f} ms ({result.rows_per_second:,.0f} rows/s)"
+    )
 
 
 # ---------------------------------------------------------------------------

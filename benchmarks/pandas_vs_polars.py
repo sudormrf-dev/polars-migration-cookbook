@@ -32,9 +32,7 @@ Expected output: a formatted results table with timing and speedup ratios.
 
 from __future__ import annotations
 
-import math
 import random
-import statistics
 import time
 from collections import defaultdict
 from dataclasses import dataclass
@@ -319,8 +317,7 @@ def join_optimised(
     """
     # Build hash index once
     idx: dict[int, tuple[str, str, float]] = {
-        p["product_id"]: (p["product_name"], p["supplier"], p["cost_price"])
-        for p in products
+        p["product_id"]: (p["product_name"], p["supplier"], p["cost_price"]) for p in products
     }
 
     result: list[dict[str, Any]] = []
@@ -499,13 +496,16 @@ def main() -> None:
     naive_ms, naive_out = _time_it(filter_naive, rows)
     opt_ms, opt_out = _time_it(filter_optimised, rows)
     assert len(naive_out) == len(opt_out), "filter output size mismatch"
-    collected.append((
-        "Filter",
-        BenchResult("naive_filter", naive_ms, len(naive_out)),
-        BenchResult("opt_filter", opt_ms, len(opt_out)),
-    ))
-    print(f"  naive={_fmt_ms(naive_ms)}, optimised={_fmt_ms(opt_ms)}, "
-          f"matched rows={len(opt_out):,}")
+    collected.append(
+        (
+            "Filter",
+            BenchResult("naive_filter", naive_ms, len(naive_out)),
+            BenchResult("opt_filter", opt_ms, len(opt_out)),
+        )
+    )
+    print(
+        f"  naive={_fmt_ms(naive_ms)}, optimised={_fmt_ms(opt_ms)}, matched rows={len(opt_out):,}"
+    )
 
     # ---- GroupBy + Agg ----
     print("Running: GroupBy + sum(amount) per category...")
@@ -515,26 +515,30 @@ def main() -> None:
     for cat in naive_gb:
         diff = abs(naive_gb[cat]["sum_amount"] - opt_gb[cat]["sum_amount"])
         assert diff < 0.01, f"groupby mismatch for {cat}: {diff}"
-    collected.append((
-        "GroupBy+Agg",
-        BenchResult("naive_groupby", naive_ms, len(naive_gb)),
-        BenchResult("opt_groupby", opt_ms, len(opt_gb)),
-    ))
-    print(f"  naive={_fmt_ms(naive_ms)}, optimised={_fmt_ms(opt_ms)}, "
-          f"groups={len(opt_gb)}")
+    collected.append(
+        (
+            "GroupBy+Agg",
+            BenchResult("naive_groupby", naive_ms, len(naive_gb)),
+            BenchResult("opt_groupby", opt_ms, len(opt_gb)),
+        )
+    )
+    print(f"  naive={_fmt_ms(naive_ms)}, optimised={_fmt_ms(opt_ms)}, groups={len(opt_gb)}")
 
     # ---- Join ----
     print("Running: Left-join orders with product table...")
     naive_ms, naive_join = _time_it(join_naive, rows, products)
     opt_ms, opt_join = _time_it(join_optimised, rows, products)
     assert len(naive_join) == len(opt_join), "join output size mismatch"
-    collected.append((
-        "Join (left)",
-        BenchResult("naive_join", naive_ms, len(naive_join)),
-        BenchResult("opt_join", opt_ms, len(opt_join)),
-    ))
-    print(f"  naive={_fmt_ms(naive_ms)}, optimised={_fmt_ms(opt_ms)}, "
-          f"output rows={len(opt_join):,}")
+    collected.append(
+        (
+            "Join (left)",
+            BenchResult("naive_join", naive_ms, len(naive_join)),
+            BenchResult("opt_join", opt_ms, len(opt_join)),
+        )
+    )
+    print(
+        f"  naive={_fmt_ms(naive_ms)}, optimised={_fmt_ms(opt_ms)}, output rows={len(opt_join):,}"
+    )
 
     # ---- Rolling window ----
     # Use a 100k subset for rolling (full 1M would be slow in Python)
@@ -548,13 +552,17 @@ def main() -> None:
     assert naive_non_null == opt_non_null, (
         f"rolling non-null count mismatch: {naive_non_null} vs {opt_non_null}"
     )
-    collected.append((
-        f"Rolling sum (100k)",
-        BenchResult("naive_rolling", naive_ms, naive_non_null),
-        BenchResult("opt_rolling", opt_ms, opt_non_null),
-    ))
-    print(f"  naive={_fmt_ms(naive_ms)}, optimised={_fmt_ms(opt_ms)}, "
-          f"non-null windows={opt_non_null:,}")
+    collected.append(
+        (
+            "Rolling sum (100k)",
+            BenchResult("naive_rolling", naive_ms, naive_non_null),
+            BenchResult("opt_rolling", opt_ms, opt_non_null),
+        )
+    )
+    print(
+        f"  naive={_fmt_ms(naive_ms)}, optimised={_fmt_ms(opt_ms)}, "
+        f"non-null windows={opt_non_null:,}"
+    )
 
     print_results(collected)
     print("\nBenchmark complete.\n")

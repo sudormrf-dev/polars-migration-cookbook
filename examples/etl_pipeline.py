@@ -25,9 +25,8 @@ from __future__ import annotations
 import math
 import random
 import statistics
-import time
 from collections import defaultdict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from patterns.lazy_evaluation import (
@@ -38,8 +37,6 @@ from patterns.lazy_evaluation import (
     build_lazy_pipeline,
 )
 from patterns.performance import (
-    BenchmarkResult,
-    MemoryProfile,
     ParallelConfig,
     Timer,
     profile_memory,
@@ -141,8 +138,18 @@ def stage_scan_and_plan() -> tuple[QueryPlan, LazyPipelineConfig]:
 
     # Stage 3: Enrich — select needed columns only (projection pushdown)
     plan.add_select(
-        ["order_id", "customer_id", "product", "category", "region",
-         "unit_price", "quantity", "discount_pct", "year", "month"]
+        [
+            "order_id",
+            "customer_id",
+            "product",
+            "category",
+            "region",
+            "unit_price",
+            "quantity",
+            "discount_pct",
+            "year",
+            "month",
+        ]
     )
 
     # Stage 4: Aggregate — region × category totals
@@ -414,9 +421,11 @@ def main() -> None:
     optimizer = PipelineOptimizer(plan, config)
     stats = optimizer.gather_stats()
     hints = optimizer.suggestions()
-    print(f"  Steps: {stats.total_steps} "
-          f"(filters={stats.filter_count}, projections={stats.projection_count}, "
-          f"group_bys={stats.group_by_count}, sorts={stats.sort_count})")
+    print(
+        f"  Steps: {stats.total_steps} "
+        f"(filters={stats.filter_count}, projections={stats.projection_count}, "
+        f"group_bys={stats.group_by_count}, sorts={stats.sort_count})"
+    )
     print(f"  Active optimizations: {[f.value for f in config.active_optimizations()]}")
     if hints:
         print(f"  Optimizer hints: {hints}")
@@ -492,10 +501,17 @@ def main() -> None:
     # ---- Stage 8: Memory profiling ----
     print("\n[Stage 8] Memory profiling...")
     schema = {
-        "order_id": "Int64", "customer_id": "Int32", "product": "Utf8",
-        "category": "Categorical", "region": "Categorical",
-        "unit_price": "Float64", "quantity": "Int32", "discount_pct": "Float32",
-        "year": "Int16", "month": "Int8", "net_revenue": "Float64",
+        "order_id": "Int64",
+        "customer_id": "Int32",
+        "product": "Utf8",
+        "category": "Categorical",
+        "region": "Categorical",
+        "unit_price": "Float64",
+        "quantity": "Int32",
+        "discount_pct": "Float32",
+        "year": "Int16",
+        "month": "Int8",
+        "net_revenue": "Float64",
     }
     mem = profile_memory(schema, n_rows=_N_ORDERS)
     par_config = ParallelConfig(n_threads=8, use_streaming=False, chunk_size=500)
@@ -508,10 +524,16 @@ def main() -> None:
     print_report(ranked, top_n=12)
 
     # ---- Pipeline summary ----
-    total_ms = sum([
-        gen_result.ms, val_result.ms, en_result.ms,
-        agg_result.ms, win_result.ms, stream_result.ms,
-    ])
+    total_ms = sum(
+        [
+            gen_result.ms,
+            val_result.ms,
+            en_result.ms,
+            agg_result.ms,
+            win_result.ms,
+            stream_result.ms,
+        ]
+    )
     print(f"\nPipeline total wall-time (Python stdlib): {total_ms:.2f} ms")
     print("(Real Polars lazy pipeline would be 10-100x faster via multi-threading + SIMD)")
     print("\nETL pipeline demo completed successfully.\n")
