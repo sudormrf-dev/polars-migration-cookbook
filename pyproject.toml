@@ -38,7 +38,7 @@ testpaths = ["tests"]
 addopts = "--cov=patterns --cov-report=term-missing --cov-fail-under=60"
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py312"
 
 [tool.ruff.lint]
@@ -61,3 +61,4 @@ disallow_incomplete_defs = false
 
 [tool.bandit]
 skips = ["B101", "B601"]
+line-length = 120
