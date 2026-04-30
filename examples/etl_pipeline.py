@@ -29,6 +29,14 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 
+from patterns.expressions import (
+    AggFunction,
+    WindowFunction,
+    WindowSpec,
+    build_aggregation,
+    build_filter,
+    build_window_expr,
+)
 from patterns.lazy_evaluation import (
     LazyPipelineConfig,
     PipelineOptimizer,
@@ -40,14 +48,6 @@ from patterns.performance import (
     ParallelConfig,
     Timer,
     profile_memory,
-)
-from patterns.expressions import (
-    AggFunction,
-    WindowFunction,
-    WindowSpec,
-    build_aggregation,
-    build_filter,
-    build_window_expr,
 )
 
 # ---------------------------------------------------------------------------
